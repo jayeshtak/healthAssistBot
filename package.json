@@ -1,0 +1,32 @@
+{
+  "name": "healthassist",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "build": "cd client/healthassist-dashboard && npm install && npm run build",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "AI-Driven Public Health Chatbot for Disease Awareness",
+  "dependencies": {
+    "@google-cloud/dialogflow": "^7.3.0",
+    "@google-cloud/text-to-speech": "^6.4.0",
+    "@google-cloud/translate": "^9.2.1",
+    "@google/generative-ai": "^0.24.1",
+    "axios": "^1.13.2",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "firebase-admin": "^13.5.0",
+    "form-data": "^4.0.5",
+    "gtts": "^0.2.1",
+    "ngrok": "^5.0.0-beta.2",
+    "node-fetch": "^3.3.2",
+    "say": "^0.16.0",
+    "twilio": "^5.10.4"
+  }
+}

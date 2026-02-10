@@ -1,0 +1,47 @@
+# ----------------------------
+# Node.js
+# ----------------------------
+node_modules/
+npm-debug.log*
+yarn-error.log*
+pnpm-lock.yaml
+package-lock.json
+.env
+
+# ----------------------------
+# Vite / React
+# ----------------------------
+dist/
+.vite/
+.cache/
+*.local
+*.tsbuildinfo
+
+# ----------------------------
+# Tailwind / PostCSS
+# ----------------------------
+*.css.map
+tailwind.config.js
+postcss.config.js
+
+# ----------------------------
+# IDE / OS
+# ----------------------------
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+Thumbs.db
+
+# ----------------------------
+# Firebase / Service Account
+# ----------------------------
+serviceAccountKey.json
+serviceAccountKey.*.json
+
+# ----------------------------
+# Logs / Misc
+# ----------------------------
+logs/
+*.log

@@ -1,0 +1,59 @@
+User sends message
+        |
+        v
+Twilio Webhook → POST /whatsapp OR POST /sms
+        |
+        v
+[WhatsApp only] normalizeWhatsAppNumber()
+[WhatsApp only] detectVoiceRequest()
+        |
+        v
+Is message empty?
+ ├─ Yes → msg = "Hello"
+ └─ No
+        |
+        v
+checkIfMedical()  [Gemini]
+ ├─ ❌ Non-medical
+ |     → send standard rejection message (SMS/WhatsApp)
+ |     → STOP
+ |
+ └─ ✅ Medical
+        |
+        v
+detectIntentAndLanguage()  [Dialogflow]
+        |
+        v
+extractDisease()  [Gemini]
+        |
+        v
+Fetch lastDisease from Firebase
+        |
+        v
+Decide topicForAnswer
+(currentDisease OR lastDisease)
+        |
+        v
+generateReply()
+ ├─ fallback Gemini prompt (if intent unknown)
+ └─ normal Gemini prompt
+        |
+        v
+Clean & trim response
+        |
+        v
+Save conversation to Firebase
+Update lastDisease
+        |
+        v
+Send reply
+ ├─ WhatsApp
+ |     ├─ Text
+ |     ├─ Voice (TTS → GitHub → Twilio)
+ |     └─ DRY_RUN logs instead of sending
+ └─ SMS
+       ├─ Text only
+       └─ DRY_RUN logs instead of sending
+        |
+        v
+✅ Response delivered or logged (if DRY_RUN)

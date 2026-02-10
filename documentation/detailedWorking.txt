@@ -1,0 +1,207 @@
+1️⃣ Server & Configuration Boot
+
+index.js
+
+Loads environment variables
+Starts Express server
+
+Registers routes:
+/whatsapp → main WhatsApp AI flow
+/sms → SMS AI flow (text-only)
+/webhook → Dialogflow webhook flow (secondary)
+/stats → analytics/logging
+
+
+2️⃣ Incoming Message
+
+WhatsApp: Twilio → /whatsapp
+SMS: Twilio → /sms
+
+Twilio sends(Example):
+
+For Whatsapp:
+{
+  "Body": "mujhe bukhar hai",
+  "From": "whatsapp:+91...",
+  "To": "whatsapp:+14..."
+}
+
+or for SMS:
+{
+  "Body": "what is malaria?",
+  "From": "+91...",
+  "To": "+91..."
+}
+
+
+3️⃣ Preprocessing
+
+utils/preprocess.js
+
+normalizeWhatsAppNumber() → ensures standard WhatsApp format
+detectVoiceRequest() → checks for keywords like:
+voice, bolo, awaaz, sunao, 🎤
+Removes them from text
+Sets wantsVoice = true (WhatsApp only)
+SMS messages are always text-only
+
+
+4️⃣ Medical Gatekeeping
+
+utils/handleNonMedical.js / checkIfMedical()
+
+Uses Gemini to determine if message is health-related
+
+If non-medical:
+Sends fixed rejection message
+Stops further processing
+
+Ensures:
+No off-topic AI usage
+Lower Gemini costs
+Clear product behavior
+
+
+5️⃣ Intent + Language Detection
+
+config/dialogflow.js
+
+Dialogflow detects:
+Intent (e.g., Symptom Checker, Disease Info)
+Language code
+Custom Hinglish detector if needed
+
+Output example:
+{
+  "intent": "Symptom Checker",
+  "language": "Hinglish"
+}
+
+
+6️⃣ Disease Memory System
+
+utils/ai.js + Firebase
+
+extractDisease(msg) → extracts disease name using Gemini
+Fetch last disease from Firebase: users/{phone}/lastDisease
+
+Decide topicForAnswer:
+currentDisease ?? lastDisease
+
+Enables follow-ups like:
+"iska treatment kya hai?"
+
+Memory updated after each message
+
+
+7️⃣ AI Response Generation
+
+utils/aiResponse.js
+
+generateReply(msg, intent, topicForAnswer)
+Fallback prompt if intent unknown
+Normal prompt otherwise
+
+Prompts enforce:
+Same language & script
+Bullet points only
+Max 80 words
+No emojis or headings
+Route code stays clean, AI logic modular
+
+
+8️⃣ Response Cleaning
+
+whatsapp.js / sms.js
+
+Removes markdown, emojis, unwanted symbols
+Normalizes line breaks and spacing
+
+Trims long replies:
+WhatsApp: >1500 chars → sliced
+SMS: >1500 chars → sliced
+
+
+9️⃣ Memory & Logging
+
+utils/conversation.js
+
+Saves conversation:
+User message
+Intent
+AI reply
+Voice/Text flag
+Timestamp
+
+Updates memory:
+users/{phone}/lastDisease
+
+
+1️⃣0️⃣ Message Delivery
+
+utils/sendMessage.js
+
+WhatsApp
+
+If wantsVoice:
+Sanitize text
+gTTS → MP3
+ffmpeg → OGG
+Upload to GitHub
+Send audio via Twilio
+Fallback to text if TTS fails
+
+If text-only:
+Sends via Twilio WhatsApp API
+SMS
+Always text-only
+
+DRY_RUN respected for both WhatsApp & SMS
+
+
+🔁 Secondary Flow: /webhook
+
+For Dialogflow-only users
+Receives webhook
+Detects language
+Confirms message is medical
+Uses generateAIResponse()
+Logs conversation to Firebase
+Responds to Dialogflow
+Runs independently from WhatsApp/SMS flow
+
+
+
+
+
+
+To simulate requests we can use curl
+
+For Whatsapp:
+
+curl -X POST http://localhost:PORT/whatsapp \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  --data-urlencode "From=whatsapp:+91xxxxxxxxxx" \
+  --data-urlencode "To=whatsapp:+1xxxxxxxxxx" \
+  --data-urlencode "Body=QUERY"
+
+For Localhost:
+
+curl -X POST http://localhost:PORT/webhook \
+  -H "Content-Type: application/json" \
+  -d '{
+    "queryResult": {
+      "queryText": "QUERY",
+      "intent": {
+        "displayName": "INETENT"
+      }
+    }
+  }'
+
+For SMS:
+
+curl -X POST http://localhost:PORT/sms \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  --data-urlencode "From=+91XXXXXXXXXX" \
+  --data-urlencode "To=+1xxxxxxxxxx" \
+  --data-urlencode "Body=QUERY"

@@ -1,0 +1,1 @@
+remove .example from serviceAccountKey.example.json and env.example.json and add your keys
